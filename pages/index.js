@@ -1,7 +1,42 @@
 import Head from 'next/head';
 import styles from '../styles/Home.module.css';
 
+import * as tf from '@tensorflow/tfjs';
+// const human = require('@vladmandic/human');
+import human from '@vladmandic/human'
+
 export default function Home() {
+  
+  async function getEmbedding() {
+    const uploadedImage = document.getElementById('uploadedImage');
+    console.log("uploadedImage",uploadedImage)
+    // Load a pre-trained model for image classification (e.g., MobileNet)
+    const model = await tf.loadLayersModel('https://storage.googleapis.com/tfjs-models/tfjs/mobilenet_v1_0.25_224/model.json');
+  
+    // Process the uploaded image
+    const image = tf.browser.fromPixels(uploadedImage);
+    const processedImage = tf.image.resizeBilinear(image, [224, 224]).toFloat().expandDims();
+  
+    // Get the embeddings
+    const embeddings = model.predict(processedImage);
+  
+    // Convert embeddings to a 1D array
+    const embeddingArray = embeddings.dataSync();
+  
+    // Now you have the 128-dimensional embedding vector
+    console.log('Embedding:', embeddingArray);
+    
+  
+    // document.getElementById('encodData').innerHTML = embeddingArray
+    // Close the modal
+    // closeModal();
+  }
+  async function handleImageUpload(event) {
+    const uploadedImage = document.getElementById('uploadedImage');
+    uploadedImage.style.display = 'block';
+    console.log("ebven",event.target.files[0])
+    uploadedImage.src = URL.createObjectURL(event.target.files[0]);
+  }
   return (
     <div className={styles.container}>
       <Head>
@@ -9,56 +44,15 @@ export default function Home() {
         <link rel="icon" href="/favicon.ico" />
       </Head>
 
-      <main>
-        <h1 className={styles.title}>
-          Welcome to <a href="https://nextjs.org">Next.js!</a>
-        </h1>
-
-        <p className={styles.description}>
-          Get started by editing <code>pages/index.js</code>
-        </p>
-
-        <div className={styles.grid}>
-          <a href="https://nextjs.org/docs" className={styles.card}>
-            <h3>Documentation &rarr;</h3>
-            <p>Find in-depth information about Next.js features and API.</p>
-          </a>
-
-          <a href="https://nextjs.org/learn" className={styles.card}>
-            <h3>Learn &rarr;</h3>
-            <p>Learn about Next.js in an interactive course with quizzes!</p>
-          </a>
-
-          <a
-            href="https://github.com/vercel/next.js/tree/canary/examples"
-            className={styles.card}
-          >
-            <h3>Examples &rarr;</h3>
-            <p>Discover and deploy boilerplate example Next.js projects.</p>
-          </a>
-
-          <a
-            href="https://vercel.com/import?filter=next.js&utm_source=create-next-app&utm_medium=default-template&utm_campaign=create-next-app"
-            className={styles.card}
-          >
-            <h3>Deploy &rarr;</h3>
-            <p>
-              Instantly deploy your Next.js site to a public URL with Vercel.
-            </p>
-          </a>
-        </div>
-      </main>
-
-      <footer>
-        <a
-          href="https://vercel.com?utm_source=create-next-app&utm_medium=default-template&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Powered by{' '}
-          <img src="/vercel.svg" alt="Vercel" className={styles.logo} />
-        </a>
-      </footer>
+      <div id="myModal" className="modal">
+  <div className="modal-content">
+    <span className="close">&times;</span>
+    <input type="file" id="imageInput" accept="image/*" onChange={(event)=>handleImageUpload(event)}/>
+    <img id="uploadedImage" src="#" alt="Uploaded Image"/>
+    <button onClick={()=>getEmbedding()}>Get Embedding</button>
+    {/* <p id='encodData'></p> */}
+  </div>
+</div>
 
       <style jsx>{`
         main {
